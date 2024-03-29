@@ -1,0 +1,5 @@
+Remember to activate your virtual environment 
+source venv/bin/activate on Unix/MacOS 
+or .\venv\Scripts\activate on Windows 
+each time you return to the project. 
+This ensures that you use the correct Python interpreter and dependencies.
