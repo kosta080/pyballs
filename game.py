@@ -28,23 +28,23 @@ class Game:
         ]
 
         # Create a hexagon
-        self.box = self.canvas.create_polygon(hexagon_points, fill="red", outline="black")
+        self.hexagone = self.canvas.create_polygon(hexagon_points, fill="red", outline="black")
 
         # Create a ball
         self.ball = self.canvas.create_oval(190, 190, 210, 210, fill="blue")
         self.ball_velocity = [2, 2]  # Initial velocity of the ball
 
         # Bind mouse events for the hexagon
-        self.canvas.tag_bind(self.box, "<Button-1>", self.start_drag)
-        self.canvas.tag_bind(self.box, "<B1-Motion>", self.drag)
-        self.canvas.tag_bind(self.box, "<ButtonRelease-1>", self.stop_drag)
+        self.canvas.tag_bind(self.hexagone, "<Button-1>", self.start_drag)
+        self.canvas.tag_bind(self.hexagone, "<B1-Motion>", self.drag)
+        self.canvas.tag_bind(self.hexagone, "<ButtonRelease-1>", self.stop_drag)
 
         # Start the animation
         self.animate()
 
     def start_drag(self, event):
         # Record the item and its location at the start of dragging
-        self.drag_data = {"x": event.x, "y": event.y, "item": self.box}
+        self.drag_data = {"x": event.x, "y": event.y, "item": self.hexagone}
 
     def drag(self, event):
         # Calculate how much the mouse has moved
@@ -67,10 +67,10 @@ class Game:
         self.canvas.move(self.ball, *self.ball_velocity)
         ball_coords = self.canvas.coords(self.ball)
 
-        # Check for collision with the box
-        box_coords = self.canvas.coords(self.box)
-        if self.check_collision(ball_coords, box_coords):
-            self.handle_collision(ball_coords, box_coords)
+        # Check for collision with the hexagone
+        hexagone_coords = self.canvas.coords(self.hexagone)
+        if self.check_collision(ball_coords, hexagone_coords):
+            self.handle_collision(ball_coords, hexagone_coords)
 
         # Bounce off the walls
         if ball_coords[0] <= 0 or ball_coords[2] >= self.canvas.winfo_width():
@@ -80,33 +80,33 @@ class Game:
 
         self.canvas.after(50, self.animate)  # Schedule next animation frame
 
-    def check_collision(self, ball_coords, box_coords):
-        # Convert flat list of box coordinates to a list of (x, y) tuples
-        box_coords = [(box_coords[i], box_coords[i+1]) for i in range(0, len(box_coords), 2)]
+    def check_collision(self, ball_coords, hexagone_coords):
+        # Convert flat list of hexagone coordinates to a list of (x, y) tuples
+        hexagone_coords = [(hexagone_coords[i], hexagone_coords[i+1]) for i in range(0, len(hexagone_coords), 2)]
 
         ball_left, ball_top, ball_right, ball_bottom = ball_coords
-        box_left = min(x for x, y in box_coords)
-        box_top = min(y for x, y in box_coords)
-        box_right = max(x for x, y in box_coords)
-        box_bottom = max(y for x, y in box_coords)
+        sg_left = min(x for x, y in hexagone_coords)
+        sg_top = min(y for x, y in hexagone_coords)
+        sg_right = max(x for x, y in hexagone_coords)
+        sg_bottom = max(y for x, y in hexagone_coords)
 
-        return not (ball_right < box_left or ball_left > box_right or ball_bottom < box_top or ball_top > box_bottom)
+        return not (ball_right < sg_left or ball_left > sg_right or ball_bottom < sg_top or ball_top > sg_bottom)
 
-    def handle_collision(self, ball_coords, box_coords):
-        # Convert flat list of box coordinates to a list of (x, y) tuples
-        box_coords = [(box_coords[i], box_coords[i+1]) for i in range(0, len(box_coords), 2)]
+    def handle_collision(self, ball_coords, sg_coords):
+        # Convert flat list of hexagone coordinates to a list of (x, y) tuples
+        sg_coords = [(sg_coords[i], sg_coords[i+1]) for i in range(0, len(sg_coords), 2)]
 
         ball_left, ball_top, ball_right, ball_bottom = ball_coords
-        box_left = min(x for x, y in box_coords)
-        box_top = min(y for x, y in box_coords)
-        box_right = max(x for x, y in box_coords)
-        box_bottom = max(y for x, y in box_coords)
+        sg_left = min(x for x, y in sg_coords)
+        sg_top = min(y for x, y in sg_coords)
+        sg_right = max(x for x, y in sg_coords)
+        sg_bottom = max(y for x, y in sg_coords)
 
         # Check if collision is more likely horizontal or vertical
-        overlap_left = ball_right - box_left
-        overlap_right = box_right - ball_left
-        overlap_top = ball_bottom - box_top
-        overlap_bottom = box_bottom - ball_top
+        overlap_left = ball_right - sg_left
+        overlap_right = sg_right - ball_left
+        overlap_top = ball_bottom - sg_top
+        overlap_bottom = sg_bottom - ball_top
 
         # Find the minimum overlap
         min_overlap = min(overlap_left, overlap_right, overlap_top, overlap_bottom)
