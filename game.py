@@ -1,7 +1,7 @@
 import tkinter as tk
 import time
 import math
-
+from calc import Calc
 class Game:
     FPS = 120
 
@@ -18,26 +18,15 @@ class Game:
         center_x = self.canvas.winfo_width() / 2
         center_y = self.canvas.winfo_height() / 2
 
-        # Define the size of the hexagon
-        size = 50  # Distance from center to each vertex
-
-        # Calculate the vertices of the hexagon
-        hexagon_points = [
-            (center_x + size * math.cos(math.radians(angle)), center_y + size * math.sin(math.radians(angle)))
-            for angle in range(0, 360, 60)  # 0, 60, 120, ..., 300 degrees
-        ]
-
-        # Create a hexagon
-        self.box = self.canvas.create_polygon(hexagon_points, fill="red", outline="black")
+        self.line = self.canvas.create_line(0, 300, 200, 10, fill="red")
 
         # Create a ball
-        self.ball = self.canvas.create_oval(190, 190, 210, 210, fill="blue")
-        self.ball_velocity = [2, 2]  # Initial velocity of the ball
+        self.ball = self.canvas.create_oval(200, 200, 250, 250, fill="blue")
+        self.ball_velocity = [1.222, 1.222]  # Initial velocity of the ball
 
-        # Bind mouse events for the hexagon
-        self.canvas.tag_bind(self.box, "<Button-1>", self.start_drag)
-        self.canvas.tag_bind(self.box, "<B1-Motion>", self.drag)
-        self.canvas.tag_bind(self.box, "<ButtonRelease-1>", self.stop_drag)
+        # Create text items
+        self.text_closest_point = self.canvas.create_text(10, 380, anchor="w", fill="black", font="Arial 10")
+        self.text_distance = self.canvas.create_text(10, 395, anchor="w", fill="black", font="Arial 10")
 
         # Start the animation
         self.animate()
@@ -62,15 +51,29 @@ class Game:
         # Clear the drag data
         self.drag_data = {}
 
+    
     def animate(self):
         # Move the ball
         self.canvas.move(self.ball, *self.ball_velocity)
         ball_coords = self.canvas.coords(self.ball)
+        ball_center_x = (ball_coords[0] + ball_coords[2]) / 2
+        ball_center_y = (ball_coords[1] + ball_coords[3]) / 2
 
-        # Check for collision with the box
-        box_coords = self.canvas.coords(self.box)
-        if self.check_collision(ball_coords, box_coords):
-            self.handle_collision(ball_coords, box_coords)
+        # Get line coordinates
+        line_coords = self.canvas.coords(self.line)
+        lx1, ly1, lx2, ly2 = line_coords
+
+        # Calculate the closest point on the line to the ball's center
+        closest_point = Calc.closest_point_on_line(lx1, ly1, lx2, ly2, ball_center_x, ball_center_y)
+        distance_to_closest_point = Calc.distance((ball_center_x, ball_center_y), closest_point)
+        if distance_to_closest_point < 25:
+            new_vx, new_vy = Calc.reflect_vector(ball_center_x, ball_center_y, self.ball_velocity[0], self.ball_velocity[1], closest_point[0], closest_point[1])
+            self.ball_velocity = [new_vx, new_vy]
+
+
+        # Update text on the canvas
+        self.canvas.itemconfig(self.text_closest_point, text=f"Closest point on the line: {closest_point}")
+        self.canvas.itemconfig(self.text_distance, text=f"Distance to the closest point: {distance_to_closest_point}")
 
         # Bounce off the walls
         if ball_coords[0] <= 0 or ball_coords[2] >= self.canvas.winfo_width():
@@ -91,6 +94,8 @@ class Game:
         box_bottom = max(y for x, y in box_coords)
 
         return not (ball_right < box_left or ball_left > box_right or ball_bottom < box_top or ball_top > box_bottom)
+
+
 
     def handle_collision(self, ball_coords, box_coords):
         # Convert flat list of box coordinates to a list of (x, y) tuples
